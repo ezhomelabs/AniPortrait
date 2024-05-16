@@ -52,11 +52,18 @@ def parse_args():
 
     return args
 
+def setup_distributed(gpus):
+    if gpus > 1:
+        os.environ['RANK'] = os.environ.get('RANK', '0')
+        os.environ['WORLD_SIZE'] = os.environ.get('WORLD_SIZE', str(gpus))
+        os.environ['MASTER_ADDR'] = os.environ.get('MASTER_ADDR', 'localhost')
+        os.environ['MASTER_PORT'] = os.environ.get('MASTER_PORT', '12355')
+        torch.distributed.init_process_group(backend='nccl')
+
 def main():
     args = parse_args()
     
-    if args.gpus > 1:
-        torch.distributed.init_process_group(backend='nccl')
+    setup_distributed(args.gpus)
 
     config = OmegaConf.load(args.config)
 
